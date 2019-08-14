@@ -4,10 +4,14 @@ import com.tavisca.main.InMemoryCache;
 
 public class InMemoryCacheTest {
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws InterruptedException {
         InMemoryCacheTest cache = new InMemoryCacheTest();
 
         cache.testAddRemoveObjects();
+
+        cache.testExpiredCacheObjects();
+
+        cache.testObjectsCleanupTime();
     }
 
     private void testAddRemoveObjects(){
@@ -27,5 +31,34 @@ public class InMemoryCacheTest {
         cache.put("Twitter", "Twitter");
         cache.put("SAP", "SAP");
         System.out.println("Two objects Added but reached maxItems.. cache.size(): " + cache.size());
+    }
+
+    private void testExpiredCacheObjects() throws InterruptedException {
+        InMemoryCache<String, String> cache = new InMemoryCache<String, String>(1, 1, 10);
+
+        cache.put("eBay", "eBay");
+        cache.put("Paypal", "Paypal");
+
+        Thread.sleep(300);
+        System.out.println("Two obj added but reached limit of ttl");
+    }
+
+    private void testObjectsCleanupTime() throws InterruptedException {
+        int size = 500000;
+        InMemoryCache<String, String> cache = new InMemoryCache<String, String>(100, 100, 500000);
+
+        for (int i = 0; i < size; i++) {
+            String value = Integer.toString(i);
+            cache.put(value, value);
+        }
+
+        Thread.sleep(200);
+
+        long start = System.currentTimeMillis();
+        cache.cleanup();
+        double finish = (double) (System.currentTimeMillis() - start) / 1000.0;
+
+        System.out.println("Cleanup times for " + size + " objects are " + finish + " s");
+
     }
 }
